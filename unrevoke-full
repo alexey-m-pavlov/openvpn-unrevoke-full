@@ -1,0 +1,43 @@
+#!/bin/bash
+
+# Unrevoke a certificate and regenerate CRL
+
+. ./vars > /dev/null
+
+KEYS_INDEX_FILE="$KEY_DIR/index.txt"
+
+if [ $# -ne 1 ]; then
+    echo "Usage: reactivate-full <cert-name-base>";
+    exit 1
+fi
+
+SOURCE_STRING=`grep "/CN=$1/" $KEYS_INDEX_FILE`
+
+COLUMN_NUMBER=`echo "$SOURCE_STRING" | awk -F '\t' '{print NF;}'`
+
+if [[ $COLUMN_NUMBER -eq 6 ]] && [[ $SOURCE_STRING == R* ]]; then
+
+    TARGET_STRING="V\t"
+    TARGET_STRING+=`echo "$SOURCE_STRING" | awk -F '\t' '{print $2}'`"\t\t"
+    TARGET_STRING+=`echo "$SOURCE_STRING" | awk -F '\t' '{print $4}'`"\t"
+    TARGET_STRING+=`echo "$SOURCE_STRING" | awk -F '\t' '{print $5}'`"\t"
+    TARGET_STRING+=`echo "$SOURCE_STRING" | awk -F '\t' '{print $6}'`
+
+    sed -i "s|$SOURCE_STRING|$TARGET_STRING|" $KEYS_INDEX_FILE
+
+    openssl ca -gencrl -keyfile keys/ca.key -cert keys/ca.crt -out /etc/openvpn/crl.pem -config ./openssl.cnf
+
+    echo "Certificate was successfully unrevoked."
+    exit 0;
+
+elif [[ $COLUMN_NUMBER -eq 6 ]] && [[ $SOURCE_STRING == V* ]]; then
+
+    echo "Certificate is already active."
+    exit 0;
+
+else
+
+    echo "Error! Key index file may be corrupted."
+    exit 1;
+
+fi
