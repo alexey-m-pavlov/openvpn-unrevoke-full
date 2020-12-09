@@ -1,6 +1,8 @@
 #!/bin/bash
 
 # Unrevoke a certificate and regenerate CRL
+# Version 1.0.0 - Initial release
+
 
 . ./vars > /dev/null
 
