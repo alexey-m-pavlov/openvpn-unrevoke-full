@@ -1,6 +1,6 @@
 # openvpn-unrevoke-full
-# Description
+## Description
 Bash-script to activate the previously revoked OpenVPN user certificate and recreate the CRL.
 Tested on Debian 10
-# Usage
+## Usage
     unrevoke-full <cert-name-base>
